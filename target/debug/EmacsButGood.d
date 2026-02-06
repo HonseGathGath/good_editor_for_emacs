@@ -1,0 +1,1 @@
+/home/ghaith/main/dev/emacs_but_good/target/debug/EmacsButGood: /home/ghaith/main/dev/emacs_but_good/src/editor.rs /home/ghaith/main/dev/emacs_but_good/src/lib.rs /home/ghaith/main/dev/emacs_but_good/src/main.rs
