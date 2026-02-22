@@ -1,8 +1,8 @@
 build:
     cargo build
 
-run:
-    cargo run
+run file:
+    cargo run {{file}}
 
 lint:
     cargo clippy
@@ -10,6 +10,6 @@ lint:
 fix:
     cargo clippy --fix -- -W clippy::all -W clippy::pedantic
 
-dev:
+dev file:
     just build
-    just run
+    just run {{file}}
