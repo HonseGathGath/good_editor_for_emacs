@@ -1,11 +1,14 @@
 use crossterm::cursor::{Hide, MoveTo, Show};
 use crossterm::style::Print;
-use crossterm::terminal::{Clear, ClearType, disable_raw_mode, enable_raw_mode, size};
+use crossterm::terminal::{
+    Clear, ClearType, EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode,
+    enable_raw_mode, size,
+};
 use crossterm::{Command, queue};
 use std::io::{Error, Write, stdout};
 
 pub struct Terminal;
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, Default)]
 pub struct Size {
     pub height: usize,
     pub width: usize,
@@ -19,14 +22,16 @@ pub struct Position {
 
 impl Terminal {
     pub fn terminate() -> Result<(), std::io::Error> {
+        Self::leave_alternate_screen()?;
+        Self::show_caret()?;
         Self::execute()?;
         disable_raw_mode()?;
         Ok(())
     }
     pub fn initialize() -> Result<(), std::io::Error> {
         enable_raw_mode()?;
+        Self::enter_alternate_screen()?;
         Self::clear_screen()?;
-        Self::move_caret_to(Position { row: 0, col: 0 })?;
         Self::execute()?;
         Ok(())
     }
@@ -41,6 +46,7 @@ impl Terminal {
     }
 
     pub fn move_caret_to(position: Position) -> Result<(), Error> {
+        #[allow(clippy::as_conversions, clippy::cast_possible_truncation)]
         Self::queue_command(MoveTo(position.row as u16, position.col as u16))?;
         Ok(())
     }
@@ -61,11 +67,14 @@ impl Terminal {
     }
 
     pub fn size() -> Result<Size, Error> {
-        let (width, height) = size()?;
-        Ok(Size {
-            height: height as usize,
-            width: width as usize,
-        })
+        let (width_u16, height_u16) = size()?;
+
+        #[allow(clippy::as_conversions)]
+        let height = height_u16 as usize;
+
+        #[allow(clippy::as_conversions)]
+        let width = width_u16 as usize;
+        Ok(Size { height, width })
     }
 
     pub fn execute() -> Result<(), Error> {
@@ -75,6 +84,22 @@ impl Terminal {
 
     fn queue_command<T: Command>(command: T) -> Result<(), Error> {
         queue!(stdout(), command)?;
+        Ok(())
+    }
+
+    pub fn enter_alternate_screen() -> Result<(), Error> {
+        Self::queue_command(EnterAlternateScreen)?;
+        Ok(())
+    }
+    pub fn leave_alternate_screen() -> Result<(), Error> {
+        Self::queue_command(LeaveAlternateScreen)?;
+        Ok(())
+    }
+
+    pub fn print_row(row: usize, line_text: &str) -> Result<(), Error> {
+        Self::move_caret_to(Position { row, col: 0 })?;
+        Self::clear_line()?;
+        Self::print(line_text)?;
         Ok(())
     }
 }

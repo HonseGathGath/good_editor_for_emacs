@@ -1,6 +1,6 @@
 use std::{fs::read_to_string, io::Error};
 
-#[derive(Debug, Default)]
+#[derive(Default)]
 pub struct Buffer {
     pub lines: Vec<String>,
 }
